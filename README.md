@@ -8,7 +8,9 @@ i have no idea what it gonna be , im just starting
 
 
 Entry point - src/main.c
+
 Images - Assets/images/
+
 Sounds - Assets/sounds/
 
 
