@@ -1,9 +1,9 @@
 # My Game
 
-i have no idea what it gonna be , im just starting
+this indie game will be a funny shooter,which gonna be playable for windows and linux OSes
+
 
 ## 🚀 Features
-
 
 
 
@@ -19,6 +19,14 @@ Sounds - Assets/sounds/
 ## 🛠️ Compilation
 
 
+it can be compiled as on windows also on linux
+
+makefile is up-to-date
+
 compilator file is ready - makefile
 
-use "make run" command in bash to run a project
+user "make" to build a project
+
+use "make run" to run a project
+
+use "make clean" to clean the solution

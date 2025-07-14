@@ -1,7 +1,8 @@
 # ===CONFIGURATION===
 
 CC=gcc
-CFLAGS= -Wall -Wextra -Linclude -lsrc
+CFLAGS= -Wall -Wextra -I./include -I./lib/glfw-3.4/include
+
 
 SRC_DIR=src
 OBJ_DIR=build
@@ -10,14 +11,15 @@ BIN_DIR=bin
 TARGET=$(BIN_DIR)/my_game
 
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
-OBJECTS := $(patsubst $(SRC_DIR)/*.c,$(OBS_DIR)/%.o,$(SOURCES))
+
+OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
 
 UNAME := $(shell uname)
 
 ifeq ($(UNAME),Linux)
-	LIBS= -lglfw -lGL -ldl -lm
+	LDFLAGS = -lglfw -lGL -ldl -lm
 else
-	LIBS= -lglfw3 -lopengl32 -lgdi32
+	LDFLAGS = -L./lib/glfw-3.4/lib -lglfw3 -lopengl32 -lgdi32
 endif
 
 # ===BUILD RULES===
@@ -28,10 +30,10 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJECTS) -o $@ $(LIBS)
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
 	@echo "Build successful!"
 
-$(OBS_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -39,5 +41,8 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -rf $(OBS_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR)
+	rm -f $(BIN_DIR)/my_game.exe
+print:
+	@echo $(SOURCES)
 

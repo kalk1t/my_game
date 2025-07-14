@@ -1,6 +1,35 @@
-build/
+# === Build output ===
+
 bin/
-*.o
+build/
+x64/
 *.exe
+*.dll
+*.obj
+*.o
 *.log
+
+
+# === Visual Studio files ===
+
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+.vs/
+
+
+# === Local Libraries ===
+lib/glfw-3.4/
+
+# === Cmake / Visual studio cache ===
+CmakeFiles/
+CmakeCache.txt
+
+
+# === System files ===
 .DS_Store
+Thumbs.db
+
+# === Optional ===
+my_game/ # <--- Visual studio's generated build data
