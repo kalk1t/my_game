@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdio.h>
+
+#define GLFW_INCLUDE_NONE //this prevents GLFW from including <GL/gl.h> ,glad includes that
 #include <GLFW/glfw3.h>
+
+#include "glad/glad.h"
 
 #ifdef _WIN32
 	#define GLFW_EXPOSE_NATIVE_WIN32
@@ -17,6 +21,13 @@ int main(void) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
 	}
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		fprintf(stderr, "Failed to initialize GLAD\n");
+		return -1;
+	}
+
+
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "My indie Game", NULL, NULL);
 	if (!window) {
