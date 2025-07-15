@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <math.h>
 
+#include "define.h"
 #define GLFW_INCLUDE_NONE //this prevents GLFW from including <GL/gl.h> ,glad includes that
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -13,39 +15,8 @@
 	#define GLFW_EXPOSE_NATIVE_X11
 #endif
 
-void error_callback(int error, const char* description) {
-	fprintf(stderr, "Error %d: %s\n", error, description);
-}
+#include "fncts.h"
 
-void check_shader_compile(unsigned int shader, const char* name) {
-	int success;
-	char infoLog[512];
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		fprintf(stderr, "ERROR::SHADER::COMPILATION_FAILED (%s)\n%s\n", name, infoLog);
-	}
-}
-
-void check_program_link(unsigned int program) {
-	int success;
-	char infoLog[512];
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(program, 512, NULL, infoLog);
-		fprintf(stderr, "ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
-	}
-}
-
-void draw(unsigned int shaderProgram,unsigned int VAO) {
-	static float angle = 0.0f;
-	angle += 0.01f; //rotation speed
-	unsigned int angleLocation = glGetUniformLocation(shaderProgram, "angle");
-	glUseProgram(shaderProgram);
-	glUniform1f(angleLocation, angle);
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
-}
 
 int main(void) {
 	double lastTime = glfwGetTime();
@@ -138,21 +109,18 @@ int main(void) {
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
 
+	struct v2 Offset = { 0 };
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
 		double currentTime = glfwGetTime();
 		double deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
 		frame_count++;
-#if 1
+#if DEBUG_OUTPUT
 		if (frame_count % 60 == 0) {
 			printf("Frame: %d | Delta Time: %f\n", frame_count, deltaTime);
 			printf("FPS: %.2f\n", frame_count / deltaTime);
 			frame_count = 0;	
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			printf("W key pressed\n");
 		}
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -162,9 +130,27 @@ int main(void) {
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); //dark grey
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float speed = 0.3f;
 
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			Offset.y += speed * deltaTime; //move up
+		}
+		if (glfwGetKey(window,	GLFW_KEY_S) == GLFW_PRESS) {
+			Offset.y -= speed * deltaTime; //move down
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			Offset.x -= speed * deltaTime; //move right
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			Offset.x += speed * deltaTime; //move left
+		}
 
-		draw(shaderProgram,VAO);
+		// Clamp
+		if (Offset.x > 1.0f) Offset.x = 1.0f;
+		if (Offset.x < -1.0f) Offset.x = -1.0f;
+		if (Offset.y > 1.0f) Offset.y = 1.0f;
+		if (Offset.y < -1.0f) Offset.y = -1.0f;
+		draw(shaderProgram,VAO,Offset);
 
 		
 		//swap front and back buffers
