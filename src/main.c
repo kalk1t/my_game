@@ -134,6 +134,7 @@ int main(void) {
 		double deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
 		frame_count++;
+#if 1
 		if (frame_count % 60 == 0) {
 			printf("Frame: %d | Delta Time: %f\n", frame_count, deltaTime);
 			printf("FPS: %.2f\n", frame_count / deltaTime);
@@ -143,7 +144,10 @@ int main(void) {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			printf("W key pressed\n");
 		}
-		
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+#endif
 		//Set background color and clear screen
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); //dark grey
 		glClear(GL_COLOR_BUFFER_BIT);
