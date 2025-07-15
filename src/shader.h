@@ -1,9 +1,19 @@
+
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
+"uniform float angle;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos, 1.0);\n"
+"   float s = sin(angle);\n"
+"   float c = cos(angle);\n"
+"   mat3 rotation = mat3(\n"
+"       c, -s, 0.0,\n"
+"       s,  c, 0.0,\n"
+"       0.0, 0.0, 1.0\n"
+"   );\n"
+"   gl_Position = vec4(rotation * aPos, 1.0);\n"
 "}\n";
+
 
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"

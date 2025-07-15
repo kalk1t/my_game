@@ -37,6 +37,16 @@ void check_program_link(unsigned int program) {
 	}
 }
 
+void draw(unsigned int shaderProgram,unsigned int VAO) {
+	static float angle = 0.0f;
+	angle += 0.01f; //rotation speed
+	unsigned int angleLocation = glGetUniformLocation(shaderProgram, "angle");
+	glUseProgram(shaderProgram);
+	glUniform1f(angleLocation, angle);
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
+}
+
 int main(void) {
 	double lastTime = glfwGetTime();
 	int frame_count = 0;
@@ -153,9 +163,8 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 
-		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
+
+		draw(shaderProgram,VAO);
 
 		
 		//swap front and back buffers
