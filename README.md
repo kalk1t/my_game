@@ -9,10 +9,6 @@ this indie game will be a funny shooter,which gonna be playable for windows and 
 
 Entry point - src/main.c
 
-Images - Assets/images/
-
-Sounds - Assets/sounds/
-
 
 
 
