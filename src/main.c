@@ -2,7 +2,7 @@
 
 #define GLFW_INCLUDE_NONE //this prevents GLFW from including <GL/gl.h> ,glad includes that
 #include <GLFW/glfw3.h>
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "shader.h"
 
 #ifdef _WIN32
@@ -38,6 +38,8 @@ void check_program_link(unsigned int program) {
 }
 
 int main(void) {
+	double lastTime = glfwGetTime();
+	int frame_count = 0;
 
 	glfwSetErrorCallback(error_callback);
 
@@ -128,6 +130,20 @@ int main(void) {
 
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
+		double currentTime = glfwGetTime();
+		double deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+		frame_count++;
+		if (frame_count % 60 == 0) {
+			printf("Frame: %d | Delta Time: %f\n", frame_count, deltaTime);
+			printf("FPS: %.2f\n", frame_count / deltaTime);
+			frame_count = 0;	
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			printf("W key pressed\n");
+		}
+		
 		//Set background color and clear screen
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); //dark grey
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -137,11 +153,12 @@ int main(void) {
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
 
+		
 		//swap front and back buffers
 		glfwSwapBuffers(window);
 		//poll for and process events
 		glfwPollEvents();
-	}
+	}//main loop
 
 	//clearup and close
 	glfwDestroyWindow(window);
