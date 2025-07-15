@@ -1,7 +1,7 @@
 # ===CONFIGURATION===
 
 CC=gcc
-CFLAGS= -Wall -Wextra -I./include -I./lib/glfw-3.4/include
+CFLAGS= -Wall -Wextra -I./include -I./lib/glfw-3.4/include -I./src -MMD -MP
 
 
 SRC_DIR=src
@@ -44,5 +44,7 @@ clean:
 	rm -rf $(OBJ_DIR)
 	rm -f $(BIN_DIR)/my_game.exe
 print:
-	@echo $(SOURCES)
+	@echo "Sources: $(SOURCES)"
+	@echo "Objects: $(OBJECTS)"
 
+-include $(OBJECTS:.o=.d)
