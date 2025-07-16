@@ -25,12 +25,49 @@ void check_program_link(unsigned int program) {
 	}
 }
 
-void draw(unsigned int shaderProgram, unsigned int VAO,float x ,float y) {
-	
-	unsigned int offsetLocation = glGetUniformLocation(shaderProgram, "offset");
+unsigned int loadTexture(const char* path)	 {
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	//set parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	int width;
+	int height;
+	int nrChannels;
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+	if (data) {
+		GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		printf("Failed to load texture: %s\n", path);
+		exit(1);
+	}
+
+	stbi_image_free(data);
+	return textureID;
+}
+
+void draw_sprite(unsigned int shaderProgram, unsigned int VAO,unsigned int texture,float x ,float y,float scale) {
+
 	glUseProgram(shaderProgram);
-	glUniform3f(offsetLocation,x,y,0.0f);
+	int offsetLoc = glGetUniformLocation(shaderProgram, "offset");
+	glUniform2f(offsetLoc, x, y);
+
+	int scaleLoc = glGetUniformLocation(shaderProgram, "scale");
+	glUniform1f(scaleLoc, scale);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 

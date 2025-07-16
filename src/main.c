@@ -7,6 +7,10 @@
 #include <glad/glad.h>
 #include "shader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+
 #ifdef _WIN32
 	#define GLFW_EXPOSE_NATIVE_WIN32
 	#pragma comment(lib,"opengl32.lib")
@@ -19,6 +23,7 @@
 
 
 int main(void) {
+
 	double lastTime = glfwGetTime();
 	int frame_count = 0;
 
@@ -46,12 +51,16 @@ int main(void) {
 
 	//Make the window's OpenGL context current
 	glfwMakeContextCurrent(window);
-
-
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		fprintf(stderr, "Failed to initialize GLAD\n");
 		return -1;
 	}
+
+	playerTexture = loadTexture("assets/images/player.png");
+	bulletTexture = loadTexture("assets/images/bullet.png");
+	enemyTexture = loadTexture("assets/images/enemy.png");
+	backgroundTexture = loadTexture("assets/images/background.png");
+
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -72,49 +81,65 @@ int main(void) {
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-	check_program_link(shaderProgram);
 	//cleanup shaders
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	check_program_link(shaderProgram);
+
+	glUseProgram(shaderProgram);
+	int texLoc = glGetUniformLocation(shaderProgram, "spriteTexture");
+	if (texLoc == -1) {
+		fprintf(stderr, "Failed to find uniform location for spriteTexture\n");
+		return -1;
+	}
+	glUniform1i(texLoc, 0); //set texture unit 0 for spriteTexture
+
 
 
 
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // left
-		 0.5f, -0.5f, 0.0f, // right
-		 0.0f,  0.5f, 0.0f  // top
+		//positions		//tex coords
+		-0.5f, -0.5f,	0.0f, 0.0f,
+		 0.5f, -0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,	1.0f, 1.0f,
+		-0.5f,  0.5f,	0.0f, 1.0f,
 	};
+
+	unsigned int indices[] = { 0,1,2,2,3,0 };
 
 	unsigned int VAO; //Vertex array Object
 	unsigned int VBO; //Vertex buffer Object
+	unsigned int EBO; //Element Buffer Object
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
-	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	//position attribute
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind the VBO
-	glBindVertexArray(0); //unbind the VAO
+	//texCoord attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 
-	//Enable VSync
-	glfwSwapInterval(1);
 
-	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+
+
+
+	Player player = { 0.0f, -0.8f, 1.0f }; //Init player position,speed is 1.0f unit persec
+	Bullet bullets[MAX_BULLETS] = { 0 };
+	Enemy enemies[MAX_ENEMIES] = { 0 };
+
 	
-
-
-	Player player = { 0.0f, 0.0f, 1.0f }; //Initialize player position,speed is 1.0f unit persec
-	Bullet bullets[MAX_BULLETS];
-	for (int i = 0; i < MAX_BULLETS; i++) {
-		bullets[i].active = 0;
-	}
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
 		double currentTime = glfwGetTime();
@@ -135,37 +160,16 @@ int main(void) {
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); //dark grey
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//draw background
+		draw_sprite(shaderProgram, VAO, backgroundTexture, 0.0f, 0.0f, 2.0f);
+
+
 		float velocity = player.speed * deltaTime;
-		
-		//bullet
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			//find inactive bullet to reuse
-			for (int i = 0; i < MAX_BULLETS; i++) {
-				if (bullets[i].active == 0) {
-					bullets[i].x = player.x;
-					bullets[i].y = player.y;
-					bullets[i].speed = player.speed * 2.0f; //bullet speed is double the player speed
-					bullets[i].active = 1; //set bullet as active
-					break; //exit loop after finding an inactive bullet
-				}
-			}
-		}
-		for (int i = 0; i < MAX_BULLETS; i++) {
-			if (bullets[i].active) {
-				bullets[i].y += bullets[i].speed * deltaTime; //move bullet up
-				if (bullets[i].y > 1.0f) { //if bullet goes off screen
-					bullets[i].active = 0; //deactivate bullet
-				}
-			}
-		}
-
-
-
 		//movement
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			player.y += velocity;
 		}
-		if (glfwGetKey(window,	GLFW_KEY_S) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			player.y -= velocity;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
@@ -180,10 +184,67 @@ int main(void) {
 		if (player.x < -1.0f) player.x = -1.0f;
 		if (player.y > 1.0f) player.y = 1.0f;
 		if (player.y < -1.0f) player.y = -1.0f;
-		draw(shaderProgram,VAO,player.x,player.y);
+
+
+		//fire bullet
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//find inactive bullet to reuse
+			for (int i = 0; i < MAX_BULLETS; i++) {
+				if (bullets[i].active == 0) {
+					bullets[i].x = player.x;
+					bullets[i].y = player.y;
+					bullets[i].speed = 2.0f; //bullet speed is double the player speed
+					bullets[i].active = 1; //set bullet as active
+					break; //exit loop after finding an inactive bullet
+				}
+			}
+		}
+		//update bullets
 		for (int i = 0; i < MAX_BULLETS; i++) {
 			if (bullets[i].active) {
-				draw(shaderProgram, VAO, bullets[i].x, bullets[i].y);
+				bullets[i].y += bullets[i].speed * deltaTime; //move bullet up
+				if (bullets[i].y > 1.0f) { //if bullet goes off screen
+					bullets[i].active = 0; //deactivate bullet
+				}
+			}
+		}
+
+		//spawn enemies
+		if (rand() % 100 < 2) { //2% chance to spawn an enemy each frame
+			for (int i = 0; i < MAX_ENEMIES; i++) {
+				if (enemies[i].active == 0) { //find inactive enemy
+					enemies[i].x = (rand() % 200-100) / 100.0f; //random x position between -1.0 and 1.0
+					enemies[i].y = 1.2f; //start at top of screen
+					enemies[i].speed = 0.3f + ((float)(rand() % 30) / 100.0f); //random speed between 0.3 and 0.6
+					enemies[i].active = 1; //set enemy as active
+					break; //exit loop after finding an inactive enemy
+				}
+			}
+		}
+
+		//update enemies
+		for (int i = 0; i < MAX_ENEMIES; i++) {
+			if (enemies[i].active) {
+				enemies[i].y -= enemies[i].speed * deltaTime; //move enemy down
+			}
+			if (enemies[i].y < -1.0f) enemies[i].active = 0;
+		
+		}
+
+		//draw enemies
+		for (int i = 0; i < MAX_ENEMIES; i++) {
+			if (enemies[i].active) {
+				draw_sprite(shaderProgram, VAO, enemyTexture, enemies[i].x, enemies[i].y, 0.2f);
+			}
+		}
+
+		//draw player
+		draw_sprite(shaderProgram,VAO,playerTexture,player.x,player.y,0.2f);
+
+		//draw bullets
+		for (int i = 0; i < MAX_BULLETS; i++) {
+			if (bullets[i].active) {
+				draw_sprite(shaderProgram, VAO,bulletTexture, bullets[i].x, bullets[i].y,0.05f);
 			}
 		}
 
