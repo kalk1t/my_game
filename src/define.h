@@ -1,4 +1,10 @@
-typedef struct v2 {
+typedef struct{
 	float x;
 	float y;
-}v2;
+}V2;
+
+typedef struct {
+	float x;
+	float y;
+	float speed;
+}Player;

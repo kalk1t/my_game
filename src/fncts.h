@@ -26,11 +26,11 @@ void check_program_link(unsigned int program) {
 	}
 }
 
-void draw(unsigned int shaderProgram, unsigned int VAO,struct v2 Offset) {
+void draw(unsigned int shaderProgram, unsigned int VAO,Player player) {
 	
 	unsigned int angleLocation = glGetUniformLocation(shaderProgram, "offset");
 	glUseProgram(shaderProgram);
-	glUniform3f(angleLocation,Offset.x,Offset.y,0.0f);
+	glUniform3f(angleLocation,player.x,player.y,0.0f);
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
 }

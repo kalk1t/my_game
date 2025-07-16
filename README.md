@@ -1,7 +1,6 @@
 # My Game
 
-this indie game will be a funny shooter,which gonna be playable for windows and linux OSes
-
+indie shooter
 
 ## 🚀 Features
 

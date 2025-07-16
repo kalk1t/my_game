@@ -107,9 +107,10 @@ int main(void) {
 	glfwSwapInterval(1);
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+	
 
 
-	struct v2 Offset = { 0 };
+	Player player = { 0.0f, 0.0f, 1.0f }; //Initialize player position,speed is 1.0f unit persec
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
 		double currentTime = glfwGetTime();
@@ -130,27 +131,27 @@ int main(void) {
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f); //dark grey
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		float speed = 0.3f;
-
+		float velocity = player.speed * deltaTime;
+		
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			Offset.y += speed * deltaTime; //move up
+			player.y += velocity;
 		}
 		if (glfwGetKey(window,	GLFW_KEY_S) == GLFW_PRESS) {
-			Offset.y -= speed * deltaTime; //move down
+			player.y -= velocity;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			Offset.x -= speed * deltaTime; //move right
+			player.x -= velocity;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			Offset.x += speed * deltaTime; //move left
+			player.x += velocity;
 		}
 
 		// Clamp
-		if (Offset.x > 1.0f) Offset.x = 1.0f;
-		if (Offset.x < -1.0f) Offset.x = -1.0f;
-		if (Offset.y > 1.0f) Offset.y = 1.0f;
-		if (Offset.y < -1.0f) Offset.y = -1.0f;
-		draw(shaderProgram,VAO,Offset);
+		if (player.x > 1.0f) player.x = 1.0f;
+		if (player.x < -1.0f) player.x = -1.0f;
+		if (player.y > 1.0f) player.y = 1.0f;
+		if (player.y < -1.0f) player.y = -1.0f;
+		draw(shaderProgram,VAO,player);
 
 		
 		//swap front and back buffers
