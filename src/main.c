@@ -111,6 +111,10 @@ int main(void) {
 
 
 	Player player = { 0.0f, 0.0f, 1.0f }; //Initialize player position,speed is 1.0f unit persec
+	Bullet bullets[MAX_BULLETS];
+	for (int i = 0; i < MAX_BULLETS; i++) {
+		bullets[i].active = 0;
+	}
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
 		double currentTime = glfwGetTime();
@@ -133,6 +137,31 @@ int main(void) {
 
 		float velocity = player.speed * deltaTime;
 		
+		//bullet
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//find inactive bullet to reuse
+			for (int i = 0; i < MAX_BULLETS; i++) {
+				if (bullets[i].active == 0) {
+					bullets[i].x = player.x;
+					bullets[i].y = player.y;
+					bullets[i].speed = player.speed * 2.0f; //bullet speed is double the player speed
+					bullets[i].active = 1; //set bullet as active
+					break; //exit loop after finding an inactive bullet
+				}
+			}
+		}
+		for (int i = 0; i < MAX_BULLETS; i++) {
+			if (bullets[i].active) {
+				bullets[i].y += bullets[i].speed * deltaTime; //move bullet up
+				if (bullets[i].y > 1.0f) { //if bullet goes off screen
+					bullets[i].active = 0; //deactivate bullet
+				}
+			}
+		}
+
+
+
+		//movement
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			player.y += velocity;
 		}
@@ -151,7 +180,12 @@ int main(void) {
 		if (player.x < -1.0f) player.x = -1.0f;
 		if (player.y > 1.0f) player.y = 1.0f;
 		if (player.y < -1.0f) player.y = -1.0f;
-		draw(shaderProgram,VAO,player);
+		draw(shaderProgram,VAO,player.x,player.y);
+		for (int i = 0; i < MAX_BULLETS; i++) {
+			if (bullets[i].active) {
+				draw(shaderProgram, VAO, bullets[i].x, bullets[i].y);
+			}
+		}
 
 		
 		//swap front and back buffers

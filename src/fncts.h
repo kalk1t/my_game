@@ -1,5 +1,4 @@
 
-#define DEBUG_OUTPUT 1
 
 
 void error_callback(int error, const char* description) {
@@ -26,12 +25,12 @@ void check_program_link(unsigned int program) {
 	}
 }
 
-void draw(unsigned int shaderProgram, unsigned int VAO,Player player) {
+void draw(unsigned int shaderProgram, unsigned int VAO,float x ,float y) {
 	
-	unsigned int angleLocation = glGetUniformLocation(shaderProgram, "offset");
+	unsigned int offsetLocation = glGetUniformLocation(shaderProgram, "offset");
 	glUseProgram(shaderProgram);
-	glUniform3f(angleLocation,player.x,player.y,0.0f);
+	glUniform3f(offsetLocation,x,y,0.0f);
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3); //draw the triangle
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
