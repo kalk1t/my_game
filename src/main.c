@@ -139,7 +139,7 @@ int main(void) {
 	Player player = { 0.0f, -0.8f, 1.0f }; //Init player position,speed is 1.0f unit persec
 	Bullet bullets[MAX_BULLETS] = { 0 };
 	Enemy enemies[MAX_ENEMIES] = { 0 };
-
+	int score = 0;
 	
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
@@ -211,30 +211,44 @@ int main(void) {
 		}
 
 		//spawn enemies
-		if (rand() % 100 < 2) { //2% chance to spawn an enemy each frame
+		if (rand() % 100 < 1) { //1% chance to spawn an enemy each frame
 			for (int i = 0; i < MAX_ENEMIES; i++) {
-				if (enemies[i].active == 0) { //find inactive enemy
+				if (enemies[i].alive == 0) { //find inactive enemy
 					enemies[i].x = (rand() % 200-100) / 100.0f; //random x position between -1.0 and 1.0
 					enemies[i].y = 1.2f; //start at top of screen
 					enemies[i].speed = 0.3f + ((float)(rand() % 30) / 100.0f); //random speed between 0.3 and 0.6
-					enemies[i].active = 1; //set enemy as active
+					enemies[i].alive = 1; //set enemy as active
 					break; //exit loop after finding an inactive enemy
+				}
+			}
+		}
+
+		//check if bullet touchs enemy
+		for (int i = 0; i < MAX_BULLETS; i++) {
+			for (int j = 0; j < MAX_ENEMIES; j++) {
+				if (check_bullet_collision(bullets[i], enemies[j],&score)) {
+					//bullet hit enemy, deactivate bullet and mark enemy as dead
+					bullets[i].active = 0; //deactivate bullet
+					enemies[j].alive = 0; //mark enemy as dead
+					printf("Hit! Score: %d\n", score);
 				}
 			}
 		}
 
 		//update enemies
 		for (int i = 0; i < MAX_ENEMIES; i++) {
-			if (enemies[i].active) {
+			if (enemies[i].alive) {
 				enemies[i].y -= enemies[i].speed * deltaTime; //move enemy down
 			}
-			if (enemies[i].y < -1.0f) enemies[i].active = 0;
+			//if enemy goes off screen or is dead, deactivate it
+			if (enemies[i].y < -1.0f || !enemies[i].alive) enemies[i].alive = 0;
+			
 		
 		}
 
 		//draw enemies
 		for (int i = 0; i < MAX_ENEMIES; i++) {
-			if (enemies[i].active) {
+			if (enemies[i].alive) {
 				draw_sprite(shaderProgram, VAO, enemyTexture, enemies[i].x, enemies[i].y, 0.2f);
 			}
 		}

@@ -55,6 +55,20 @@ unsigned int loadTexture(const char* path)	 {
 	return textureID;
 }
 
+int check_bullet_collision(Bullet bullet, Enemy enemy,int* score) {
+	if (bullet.active && enemy.alive) {
+		//simple AABB collision detection
+		if (bullet.x < enemy.x + 0.1f && bullet.x + 0.05f > enemy.x &&
+			bullet.y < enemy.y + 0.1f && bullet.y + 0.05f > enemy.y) {
+			enemy.alive = 0; //mark enemy as dead
+			bullet.active = 0; //deactivate bullet
+			*score += 100;
+			return 1; //collision detected
+		}
+	}
+	return 0; //no collision
+}
+
 void draw_sprite(unsigned int shaderProgram, unsigned int VAO,unsigned int texture,float x ,float y,float scale) {
 
 	glUseProgram(shaderProgram);

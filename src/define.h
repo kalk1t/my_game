@@ -24,5 +24,5 @@ typedef struct {
 	float x;
 	float y;
 	float speed;
-	int active;
+	int alive;
 }Enemy;
