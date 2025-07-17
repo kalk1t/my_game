@@ -2,13 +2,16 @@
 
 indie shooter
 
+##Libs
+
+This project uses :
+
+stb_image.h by Sean Barrett.
+Public Domain or MIT License - https://github.com/nothings/stb 
+
 ## 🚀 Features
 
-
-
 Entry point - src/main.c
-
-
 
 
 ## 🛠️ Compilation

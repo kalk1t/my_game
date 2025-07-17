@@ -62,9 +62,6 @@ int main(void) {
 	backgroundTexture = loadTexture("assets/images/background.png");
 
 
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
 
 	//Vertext shader
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -131,6 +128,9 @@ int main(void) {
 	glEnableVertexAttribArray(1);
 
 
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	glViewport(0, 0, width, height);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //enable alpha blending
 
