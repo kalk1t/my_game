@@ -11,6 +11,7 @@ typedef struct {
 	float x;
 	float y;
 	float speed;
+	int health;
 }Player;
 
 typedef struct {

@@ -136,7 +136,7 @@ int main(void) {
 
 
 
-	Player player = { 0.0f, -0.8f, 1.0f }; //Init player position,speed is 1.0f unit persec
+	Player player = { 0.0f, -0.8f, 1.0f,3 }; //Init player position,speed is 1.0f unit persec
 	Bullet bullets[MAX_BULLETS] = { 0 };
 	Enemy enemies[MAX_ENEMIES] = { 0 };
 	int score = 0;
@@ -231,6 +231,16 @@ int main(void) {
 					bullets[i].active = 0; //deactivate bullet
 					enemies[j].alive = 0; //mark enemy as dead
 					printf("Hit! Score: %d\n", score);
+				}
+				if (check_enemy_player_collision(player, enemies[j])) {
+					//enemy hit player
+					player.health--;
+					enemies[j].alive = 0; //mark enemy as dead
+					printf("Player hit! Health: %d\n", player.health);
+					if (player.health <= 0) {
+						printf("Game Over! Final Score: %d\n", score);
+						glfwSetWindowShouldClose(window, GLFW_TRUE); //close window if player is dead
+					}
 				}
 			}
 		}

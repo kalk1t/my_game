@@ -69,6 +69,17 @@ int check_bullet_collision(Bullet bullet, Enemy enemy,int* score) {
 	return 0; //no collision
 }
 
+int check_enemy_player_collision(Player player, Enemy enemy) {
+	if (enemy.alive) {
+		//simple AABB collision detection
+		if (player.x < enemy.x + 0.1f && player.x + 0.1f > enemy.x &&
+			player.y < enemy.y + 0.1f && player.y + 0.1f > enemy.y) {
+			return 1; //collision detected
+		}
+	}
+	return 0; //no collision
+}
+
 void draw_sprite(unsigned int shaderProgram, unsigned int VAO,unsigned int texture,float x ,float y,float scale) {
 
 	glUseProgram(shaderProgram);
