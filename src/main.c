@@ -265,7 +265,9 @@ int main(void) {
 
 		//draw player
 		draw_sprite(shaderProgram,VAO,playerTexture,player.x,player.y,0.2f);
-
+		for (int i = 0; i < player.health; i++) {
+			draw_sprite(shaderProgram, VAO, playerTexture, -0.9f + i * 0.1f, -0.9f, 0.05f); //draw health icons
+		}
 		//draw bullets
 		for (int i = 0; i < MAX_BULLETS; i++) {
 			if (bullets[i].active) {
