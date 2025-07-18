@@ -14,11 +14,14 @@
 #include <miniaudio.h>
 
 #ifdef _WIN32
+	#include <windows.h>
 	#define GLFW_EXPOSE_NATIVE_WIN32
 	#pragma comment(lib,"opengl32.lib")
 	#pragma comment(lib,"glfw3.lib")
 #else
 	#define GLFW_EXPOSE_NATIVE_X11
+	#include <unistd.h>
+
 #endif
 
 #include "fncts.h"
@@ -200,15 +203,14 @@ int main(void) {
 
 		//fire bullet
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-
-			ma_engine_play_sound(&engine, "assets/sounds/shoot.wav", NULL);
 			//find inactive bullet to reuse
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				if (bullets[i].active == 0) {
 					bullets[i].x = player.x;
 					bullets[i].y = player.y;
-					bullets[i].speed = 2.0f; //bullet speed is double the player speed
+					bullets[i].speed = 1.0f; //bullet speed is double the player speed
 					bullets[i].active = 1; //set bullet as active
+					ma_engine_play_sound(&engine, "assets/sounds/shoot.wav", NULL);
 					break; //exit loop after finding an inactive bullet
 				}
 			}

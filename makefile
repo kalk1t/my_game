@@ -1,7 +1,7 @@
 # ===CONFIGURATION===
 
 CC=gcc
-CFLAGS= -Wall -Wextra -I./include -I./lib/glfw-3.4/include -I./src -MMD -MP
+CFLAGS= -Wall -O0 -Wextra -I./include -I./lib/glfw-3.4/include -I./src -MMD -MP
 
 
 SRC_DIR=src
