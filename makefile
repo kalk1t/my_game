@@ -17,7 +17,7 @@ OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
 UNAME := $(shell uname)
 
 ifeq ($(UNAME),Linux)
-	LDFLAGS = -lglfw -lGL -ldl -lm
+	LDFLAGS = -lglfw -lGL -ldl -lm -lpthread
 else
 	LDFLAGS = -L./lib/glfw-3.4/lib -lglfw3 -lopengl32 -lgdi32
 endif

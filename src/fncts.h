@@ -74,6 +74,7 @@ int check_enemy_player_collision(Player player, Enemy enemy) {
 		//simple AABB collision detection
 		if (player.x < enemy.x + 0.1f && player.x + 0.1f > enemy.x &&
 			player.y < enemy.y + 0.1f && player.y + 0.1f > enemy.y) {
+
 			return 1; //collision detected
 		}
 	}

@@ -4,12 +4,14 @@
 #include "define.h"
 #define GLFW_INCLUDE_NONE //this prevents GLFW from including <GL/gl.h> ,glad includes that
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include <glad.h>
 #include "shader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define MINIAUDIO_IMPLEMENTATION
+#include <miniaudio.h>
 
 #ifdef _WIN32
 	#define GLFW_EXPOSE_NATIVE_WIN32
@@ -35,7 +37,13 @@ int main(void) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
 	}
-
+	//initialize sound engine
+	ma_engine engine;
+	if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
+		fprintf(stderr, "Failed to initialize sound engine\n");
+		glfwTerminate();
+		return -1;
+	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -56,10 +64,12 @@ int main(void) {
 		return -1;
 	}
 
+	//Load textures
 	playerTexture = loadTexture("assets/images/player.png");
 	bulletTexture = loadTexture("assets/images/bullet.png");
 	enemyTexture = loadTexture("assets/images/enemy.png");
 	backgroundTexture = loadTexture("assets/images/background.png");
+
 
 
 
@@ -140,6 +150,7 @@ int main(void) {
 	Bullet bullets[MAX_BULLETS] = { 0 };
 	Enemy enemies[MAX_ENEMIES] = { 0 };
 	int score = 0;
+	int check_score = 0;
 	
 	//Game loop
 	while (!glfwWindowShouldClose(window)) {
@@ -189,6 +200,8 @@ int main(void) {
 
 		//fire bullet
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+
+			ma_engine_play_sound(&engine, "assets/sounds/shoot.wav", NULL);
 			//find inactive bullet to reuse
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				if (bullets[i].active == 0) {
@@ -223,6 +236,7 @@ int main(void) {
 			}
 		}
 
+		check_score = score;
 		//check if bullet touchs enemy
 		for (int i = 0; i < MAX_BULLETS; i++) {
 			for (int j = 0; j < MAX_ENEMIES; j++) {
@@ -234,6 +248,7 @@ int main(void) {
 				}
 				if (check_enemy_player_collision(player, enemies[j])) {
 					//enemy hit player
+					ma_engine_play_sound(&engine, "assets/sounds/hit.wav", NULL);
 					player.health--;
 					enemies[j].alive = 0; //mark enemy as dead
 					printf("Player hit! Health: %d\n", player.health);
@@ -243,6 +258,10 @@ int main(void) {
 					}
 				}
 			}
+		}
+		if (score > check_score) {
+			//play score sound
+			ma_engine_play_sound(&engine, "assets/sounds/score.wav", NULL);
 		}
 
 		//update enemies
@@ -281,6 +300,9 @@ int main(void) {
 		//poll for and process events
 		glfwPollEvents();
 	}//main loop
+
+	//cleanup sound engine
+	ma_engine_uninit(&engine);
 
 	//clearup and close
 	glfwDestroyWindow(window);
