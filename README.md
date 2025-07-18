@@ -1,6 +1,6 @@
 # My Game
 
-indie shooter
+space shooter
 
 # Libs
 
