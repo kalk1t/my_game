@@ -1,5 +1,5 @@
 #define DEBUG_OUTPUT 1
-#define MAX_BULLETS 2
+#define MAX_BULLETS 10
 #define MAX_ENEMIES 10
 
 unsigned int playerTexture;

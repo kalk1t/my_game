@@ -40,13 +40,6 @@ int main(void) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
 	}
-	//initialize sound engine
-	ma_engine engine;
-	if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
-		fprintf(stderr, "Failed to initialize sound engine\n");
-		glfwTerminate();
-		return -1;
-	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -74,7 +67,20 @@ int main(void) {
 	backgroundTexture = loadTexture("assets/images/background.png");
 
 
+	//initialize sound engine
+	ma_engine engine;
 
+	if (ma_engine_init(NULL, &engine)) {
+		fprintf(stderr, "Failed to initialize sound engine\n");
+	}
+
+	ma_sound shootSound;
+	ma_sound scoreSound;
+	ma_sound hitSound;
+
+	ma_sound_init_from_file(&engine, "assets/sounds/hit.wav", 0, NULL, NULL, &hitSound);
+	ma_sound_init_from_file(&engine, "assets/sounds/shoot.wav", 0, NULL,NULL, &shootSound);
+	ma_sound_init_from_file(&engine, "assets/sounds/score.wav", 0, NULL, NULL, &scoreSound);
 
 	//Vertext shader
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -147,12 +153,12 @@ int main(void) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //enable alpha blending
 
-
+	int space_was_pressed = 0;
 
 	Player player = { 0.0f, -0.8f, 1.0f,3 }; //Init player position,speed is 1.0f unit persec
 	Bullet bullets[MAX_BULLETS] = { 0 };
 	Enemy enemies[MAX_ENEMIES] = { 0 };
-	int score = 0;
+	int game_score = 0;
 	int check_score = 0;
 	
 	//Game loop
@@ -200,21 +206,26 @@ int main(void) {
 		if (player.y > 1.0f) player.y = 1.0f;
 		if (player.y < -1.0f) player.y = -1.0f;
 
-
+		int space_is_pressed = glfwGetKey(window, GLFW_KEY_SPACE);
 		//fire bullet
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			//find inactive bullet to reuse
+		if (space_is_pressed==GLFW_PRESS && space_was_pressed==GLFW_RELEASE) {
+			int bullet_fired = 0;
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				if (bullets[i].active == 0) {
 					bullets[i].x = player.x;
 					bullets[i].y = player.y;
 					bullets[i].speed = 1.0f; //bullet speed is double the player speed
 					bullets[i].active = 1; //set bullet as active
-					ma_engine_play_sound(&engine, "assets/sounds/shoot.wav", NULL);
-					break; //exit loop after finding an inactive bullet
+					bullet_fired = 1;
+					break;
 				}
 			}
+			if (bullet_fired) {
+				ma_sound_seek_to_pcm_frame(&shootSound, 0); //reset sound to start
+				ma_sound_start(&shootSound); // Play it
+			}
 		}
+		space_was_pressed = space_is_pressed; //update space_was_pressed for next frame
 		//update bullets
 		for (int i = 0; i < MAX_BULLETS; i++) {
 			if (bullets[i].active) {
@@ -238,32 +249,38 @@ int main(void) {
 			}
 		}
 
-		check_score = score;
+		check_score = game_score;
 		//check if bullet touchs enemy
 		for (int i = 0; i < MAX_BULLETS; i++) {
 			for (int j = 0; j < MAX_ENEMIES; j++) {
-				if (check_bullet_collision(bullets[i], enemies[j],&score)) {
+				if (check_bullet_collision(bullets[i], enemies[j],&game_score)) {
 					//bullet hit enemy, deactivate bullet and mark enemy as dead
 					bullets[i].active = 0; //deactivate bullet
 					enemies[j].alive = 0; //mark enemy as dead
-					printf("Hit! Score: %d\n", score);
+					printf("Hit! Score: %d\n", game_score);
 				}
 				if (check_enemy_player_collision(player, enemies[j])) {
 					//enemy hit player
-					ma_engine_play_sound(&engine, "assets/sounds/hit.wav", NULL);
 					player.health--;
+
+					ma_sound_seek_to_pcm_frame(&hitSound, 0); //reset sound to start
+					ma_sound_start(&hitSound); // Play it
+
 					enemies[j].alive = 0; //mark enemy as dead
 					printf("Player hit! Health: %d\n", player.health);
 					if (player.health <= 0) {
-						printf("Game Over! Final Score: %d\n", score);
+						printf("Game Over! Final Score: %d\n", game_score);
 						glfwSetWindowShouldClose(window, GLFW_TRUE); //close window if player is dead
 					}
 				}
 			}
 		}
-		if (score > check_score) {
+		if (game_score > check_score) {
 			//play score sound
-			ma_engine_play_sound(&engine, "assets/sounds/score.wav", NULL);
+
+			ma_sound_seek_to_pcm_frame(&scoreSound, 0); //reset sound to start
+			ma_sound_start(&scoreSound); // Play it
+
 		}
 
 		//update enemies
@@ -304,6 +321,10 @@ int main(void) {
 	}//main loop
 
 	//cleanup sound engine
+	ma_sound_uninit(&shootSound);
+	ma_sound_uninit(&scoreSound);
+	ma_sound_uninit(&hitSound);
+
 	ma_engine_uninit(&engine);
 
 	//clearup and close
